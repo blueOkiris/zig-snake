@@ -1,0 +1,7 @@
+zig-cache/
+*.tar.gz
+sdl2/
+*.a
+zig-out/
+zig-snake
+
