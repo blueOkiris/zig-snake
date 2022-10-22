@@ -30,6 +30,7 @@ run: ${SRC} libSDL2.a
 clean:
 	rm -rf ${SDL_SRC}
 	rm -rf ${SDL_FLDR}
+	rm -rf build/
 	rm -rf libSDL2.a
 	rm -rf zig-out/
 	rm -rf zig-cache/
