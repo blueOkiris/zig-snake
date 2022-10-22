@@ -4,6 +4,14 @@
 
 A snake clone in Zig with statically-compiled SDL2
 
+## Purpose
+
+The purpose of making this is to serve 1) as a learning exercize and 2) as a starting point for others who want to learn Zig.
+
+That said, I can't recommend Zig after using it. The entire time I've been making this, I've wanted to use another language like Rust, C++, and C.
+
+Zig is cool in concept and does a lot right in terms of features, but it's my opinion that these features are not executed upon well.
+
 ## Build
 
 For the main project you only need a zig compiler.
