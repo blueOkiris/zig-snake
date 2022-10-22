@@ -7,6 +7,7 @@ const snake = @import("snake.zig");
 
 const WINDOW_WIDTH = 800;
 const WINDOW_HEIGHT = 600;
+const FPS = 60;
 
 pub fn main() !void {
     if(sdl.init(sdl.INIT_VIDEO) < 0) {
@@ -38,7 +39,9 @@ pub fn main() !void {
     const head = try snake.SnakeHead.init(renderer);
 
     var quit = false;
+    var last_time_us: i128 = @divTrunc(std.time.nanoTimestamp(), 1000);
     while(!quit) {
+        // Handle events always
         var event: sdl.Event = undefined;
         while(sdl.poll_event(&event) != 0) {
             switch(event.@"type") {
@@ -48,15 +51,20 @@ pub fn main() !void {
             }
         }
 
+        // Maintain fps
+        // 1 / (fps f/s * 1s/1000ms) = 1000/60 ms/f = 1000000/fps us/f
+        var min_dt_us: i128 = 1000000 / FPS;
+        var new_time_us: i128 = @divTrunc(std.time.nanoTimestamp(), 1000);
+        var dt = new_time_us - last_time_us;
+        if(dt < min_dt_us) {
+            continue; // Don't render until 1/fps seconds have passed
+        }
+
+        // Draw to screen
         _ = sdl.render_clear(renderer);
-        
         head.spr.draw(renderer);
         // TODO: Make all the game objects
-
         _ = sdl.render_present(renderer);
-
-        // TODO: Make 60fps
-        sdl.delay(17);
     }
 }
 
