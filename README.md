@@ -23,7 +23,7 @@ However, SDL2 requires some dependencies:
 - tar (extracting SDL2)
 - cmake (configuring SDL2)
 - make (building SDL2)
-- gcc (should have this if zig is installed tbf)
+- gcc (building)
 
 With those installed, you just need to run `make`
 

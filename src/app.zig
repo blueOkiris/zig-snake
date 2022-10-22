@@ -5,6 +5,13 @@ const sdl = @import("sdl.zig");
 const snake = @import("snake.zig");
 const settings = @import("settings.zig");
 const err = @import("error.zig");
+const res = @import("res.zig");
+
+const GameState = enum {
+    Title,
+    Playing,
+    GameOver
+};
 
 pub const App = struct {
     window: *sdl.Window,
@@ -12,6 +19,9 @@ pub const App = struct {
 
     // Game objects
     player: snake.Snake,
+    title_spr: res.Sprite,
+
+    state: GameState,
 
     pub fn init() !App {
         if(sdl.init(sdl.INIT_VIDEO) < 0) {
@@ -36,12 +46,14 @@ pub const App = struct {
             return err.SnakeError.ImgInitFailed;
         }
 
-        const player = try snake.Snake.init(renderer);
-
         return App {
             .renderer = renderer,
             .window = window,
-            .player = player
+
+            .player = try snake.Snake.init(renderer),
+            .title_spr = try res.Sprite.init(@ptrCast(*const u8, "img/title.png"), renderer),
+
+            .state = GameState.Title
         };
     }
 
@@ -54,13 +66,36 @@ pub const App = struct {
     pub fn update(app: *App, dt: f64) void {
         app.player.update(dt);
         // TODO: Other game objects
+        
+        switch(app.state) {
+            GameState.Title => {
+                const kb_state = sdl.getKeyboardState(null);
+                if(kb_state[sdl.SCANCODE_SPACE] != 0) {
+                    app.state = GameState.Playing;
+                    app.player.state = snake.SnakeState.Reset;
+                }
+            }, GameState.Playing => {},
+            GameState.GameOver => {
+                const kb_state = sdl.getKeyboardState(null);
+                if(kb_state[sdl.SCANCODE_SPACE] != 0) {
+                    app.state = GameState.Title;
+                    app.player.state = snake.SnakeState.Invisible;
+                }
+            }
+        }
     }
 
     pub fn draw(app: *App) void {
         _ = sdl.renderClear(app.renderer);
 
-        app.player.draw(app.renderer);
-        // TODO: Make all the game objects render
+        switch(app.state) {
+            GameState.Title => {
+                app.title_spr.draw(app.renderer);
+            }, else => {
+                app.player.draw(app.renderer);
+                // TODO: Make all the game objects render
+            }
+        }
 
         _ = sdl.renderPresent(app.renderer);
     }
