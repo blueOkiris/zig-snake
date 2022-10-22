@@ -15,10 +15,16 @@ pub fn build(b: *std.build.Builder) void {
     exe.setTarget(target);
     exe.setBuildMode(mode);
 
+    exe.addLibPath("./");
+
     // Add SDL2 dependencies
     exe.addIncludeDir("sdl2/include/");
-    exe.addLibPath("./");
     exe.linkSystemLibrary("SDL2");
+
+    // Add SDL2_image deps
+    exe.addIncludeDir("sdl2-img/include/");
+    exe.linkSystemLibrary("SDL2_image");
+
     exe.linkSystemLibrary("m");
     exe.linkSystemLibrary("pthread");
     exe.linkSystemLibrary("rt");
