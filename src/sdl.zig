@@ -9,6 +9,7 @@ const csdl = @cImport({
 });
 
 pub const Renderer = csdl.SDL_Renderer;
+pub const Window = csdl.SDL_Window;
 pub const Texture = csdl.SDL_Texture;
 pub const Event = csdl.SDL_Event;
 pub const Rect = csdl.SDL_Rect;

@@ -7,7 +7,6 @@ const settings = @import("settings.zig");
 const std = @import("std");
 
 // Actually the Snake*Head*, but ya know it's also the "main" part of the snake, so yeah
-// When creating, use "defer sdl.destroyTexture(<var-name>.spr.tex)"
 pub const Snake = struct {
     spr: res.Sprite,
     x: f32,
@@ -54,6 +53,10 @@ pub const Snake = struct {
 
     pub fn draw(snake: *const Snake, renderer: *sdl.Renderer) void {
         snake.spr.draw(renderer);
+    }
+
+    pub fn deinit(snake: *Snake) void {
+        snake.spr.deinit();
     }
 };
 

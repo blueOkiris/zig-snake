@@ -4,7 +4,6 @@
 const sdl = @import("sdl.zig");
 const err = @import("error.zig");
 
-// When creating, use "defer sdl.destroyTexture(<var-name>.tex)"
 pub const Sprite = struct {
     tex: *sdl.Texture,
     x: f32,
@@ -62,6 +61,10 @@ pub const Sprite = struct {
             .h = @floatToInt(i32, @intToFloat(f32, spr.height) * spr.scale_y)
         };
         _ = sdl.renderCopy(renderer, spr.tex, &src, &dest);
+    }
+
+    pub fn deinit(spr: *Sprite) void {
+        sdl.destroyTexture(spr.tex);
     }
 };
 
