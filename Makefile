@@ -18,7 +18,9 @@ SDL_IMG_FLDR :=		sdl2-img/
 
 OBJNAME :=			zig-snake
 SRC :=				build.zig \
-					${wildcard src/*.zig}
+					${wildcard src/*.zig} \
+					${wildcard src/*.cpp} \
+					${wildcard src/*.h}
 # Targets
 
 ## Helper

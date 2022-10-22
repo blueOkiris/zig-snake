@@ -17,13 +17,14 @@ pub const INIT_VIDEO = csdl.SDL_INIT_VIDEO;
 pub const RENDERER_ACCELERATED = csdl.SDL_RENDERER_ACCELERATED;
 pub const INIT_PNG = csdl.IMG_INIT_PNG;
 pub const QUIT = csdl.SDL_QUIT;
+pub const SCANCODE_SPACE = csdl.SDL_SCANCODE_SPACE;
 
 pub const init = csdl.SDL_Init;
 pub const log = csdl.SDL_Log;
 pub const getError = csdl.SDL_GetError;
 pub const quit = csdl.SDL_Quit;
 pub const pollEvent = csdl.SDL_PollEvent;
-pub const delay = csdl.SDL_Delay;
+pub const getKeyboardState = csdl.SDL_GetKeyboardState;
 
 pub const imgInit = csdl.IMG_Init;
 pub const imgGetError = csdl.IMG_GetError;

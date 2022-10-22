@@ -36,12 +36,14 @@ pub fn main() !void {
     }
     defer sdl.imgQuit();
 
+    //const stdout = std.io.getStdOut().writer();
+
     var player = try snake.Snake.init(renderer);
     defer sdl.destroyTexture(player.spr.tex);
 
     var quit = false;
-    var loop_timer = try std.time.Timer.start();
-    var elapsed_time_ns: u64 = 0;
+    var timer = try std.time.Timer.start();
+    var elapsed_time_s: f64 = 0;
     while(!quit) {
         // Handle events always
         var event: sdl.Event = undefined;
@@ -54,17 +56,16 @@ pub fn main() !void {
         }
 
         // Calculate delta
-        const dt_ns = loop_timer.lap();
-        const dt_s = @intToFloat(f32, dt_ns) / @intToFloat(f32, std.time.ns_per_s);
+        const dt_ns = timer.lap();
+        const dt_s = @intToFloat(f64, dt_ns) / @intToFloat(f64, std.time.ns_per_s);
         player.update(dt_s);
         // TODO: Game objects
 
         // Don't render until 1/fps seconds have passed
-        elapsed_time_ns += dt_ns;
-        const min_dt_us = std.time.us_per_s / settings.FPS;
-        const min_dt_ns = min_dt_us * std.time.ns_per_us;
-        if(elapsed_time_ns > min_dt_ns) {
-            elapsed_time_ns = 0;
+        elapsed_time_s += dt_s;
+        const min_dt_s = 1.0 / @intToFloat(f64, settings.FPS);
+        if(elapsed_time_s > min_dt_s) {
+            elapsed_time_s = 0;
         
             // Draw to screen
             _ = sdl.renderClear(renderer);

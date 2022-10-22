@@ -25,6 +25,7 @@ pub fn build(b: *std.build.Builder) void {
     exe.addIncludeDir("sdl2-img/include/");
     exe.linkSystemLibrary("SDL2_image");
 
+    // Extras to make everything work
     exe.linkSystemLibrary("m");
     exe.linkSystemLibrary("pthread");
     exe.linkSystemLibrary("rt");

@@ -13,7 +13,8 @@ pub const Snake = struct {
     x: f32,
     y: f32,
     spd: u32,
-    sec_tmr: std.time.Timer,
+    sec_tmr: f64,
+    started: bool,
 
     pub fn init(renderer: *sdl.Renderer) !Snake {
         var spr = try res.Sprite.init(@ptrCast(*const u8, "img/head.png"), renderer);
@@ -27,14 +28,27 @@ pub const Snake = struct {
             .x = 100,
             .y = 100,
             .spd = settings.DEF_SNAKE_SPD,
-            .sec_tmr = try std.time.Timer.start()
+            .sec_tmr = 0.0,
+            .started = false
         };
     }
 
-    pub fn update(snake: *Snake, dt: f32) void {
-        if(snake.sec_tmr.read() < std.time.ns_per_s) {
-            snake.x += @intToFloat(f32, snake.spd) * dt;
-            snake.spr.x = snake.x;
+    pub fn update(snake: *Snake, dt: f64) void {
+        if(snake.started) {
+            if(snake.sec_tmr < 1.0) {
+                snake.x += @intToFloat(f32, snake.spd) * @floatCast(f32, dt);
+                snake.spr.x = snake.x;
+                snake.sec_tmr += dt;
+            } else {
+                snake.started = false;
+            }
+        } else {
+            const kb_state = sdl.getKeyboardState(null);
+            if(kb_state[sdl.SCANCODE_SPACE] != 0) {
+                snake.sec_tmr = 0.0;
+                snake.x = 100;
+                snake.started = true;
+            }
         }
     }
 
