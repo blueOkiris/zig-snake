@@ -4,46 +4,48 @@
 const std = @import("std");
 const sdl = @import("sdl.zig");
 const snake = @import("snake.zig");
-
-const WINDOW_WIDTH = 800;
-const WINDOW_HEIGHT = 600;
-const FPS = 60;
+const err = @import("error.zig");
+const settings = @import("settings.zig");
 
 pub fn main() !void {
     if(sdl.init(sdl.INIT_VIDEO) < 0) {
-        sdl.log("Unable to initialize SDL: %s", sdl.get_error());
-        return error.init_failed;
+        sdl.log("Unable to initialize SDL: %s", sdl.getError());
+        return err.SnakeError.InitFailed;
     }
     defer sdl.quit();
 
-    const window = sdl.create_window("Snake", 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, 0) orelse {
-        sdl.log("Unable to initialize SDL: %s", sdl.get_error());
-        return error.init_failed;
+    const window = sdl.createWindow(
+        "Snake", 0, 0, settings.WINDOW_WIDTH, settings.WINDOW_HEIGHT, 0
+    ) orelse {
+        sdl.log("Unable to initialize SDL: %s", sdl.getError());
+        return err.SnakeError.InitFailed;
     };
-    defer sdl.destroy_window(window);
+    defer sdl.destroyWindow(window);
 
-    const renderer = sdl.create_renderer(window, -1, sdl.RENDERER_ACCELERATED) orelse {
-        sdl.log("Unable to initialize SDL: %s", sdl.get_error());
-        return error.init_failed;
+    const renderer = sdl.createRenderer(window, -1, sdl.RENDERER_ACCELERATED) orelse {
+        sdl.log("Unable to initialize SDL: %s", sdl.getError());
+        return err.SnakeError.InitFailed;
     };
-    defer sdl.destroy_renderer(renderer);
+    defer sdl.destroyRenderer(renderer);
 
-    _ = sdl.set_render_draw_color(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
+    _ = sdl.setRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
 
-    if(sdl.img_init(sdl.INIT_PNG) & sdl.INIT_PNG == 0) {
-        sdl.log("Unable to initialize SDL_image: %s", sdl.img_get_error());
-        return error.img_init_failed;
+    if(sdl.imgInit(sdl.INIT_PNG) & sdl.INIT_PNG == 0) {
+        sdl.log("Unable to initialize SDL_image: %s", sdl.imgGetError());
+        return err.SnakeError.ImgInitFailed;
     }
-    defer sdl.img_quit();
+    defer sdl.imgQuit();
 
-    const head = try snake.SnakeHead.init(renderer);
+    var player = try snake.Snake.init(renderer);
+    defer sdl.destroyTexture(player.spr.tex);
 
     var quit = false;
-    var last_time_us: i128 = @divTrunc(std.time.nanoTimestamp(), 1000);
+    var loop_timer = try std.time.Timer.start();
+    var elapsed_time_ns: u64 = 0;
     while(!quit) {
         // Handle events always
         var event: sdl.Event = undefined;
-        while(sdl.poll_event(&event) != 0) {
+        while(sdl.pollEvent(&event) != 0) {
             switch(event.@"type") {
                 sdl.QUIT => {
                     quit = true;
@@ -51,20 +53,25 @@ pub fn main() !void {
             }
         }
 
-        // Maintain fps
-        // 1 / (fps f/s * 1s/1000ms) = 1000/60 ms/f = 1000000/fps us/f
-        var min_dt_us: i128 = 1000000 / FPS;
-        var new_time_us: i128 = @divTrunc(std.time.nanoTimestamp(), 1000);
-        var dt = new_time_us - last_time_us;
-        if(dt < min_dt_us) {
-            continue; // Don't render until 1/fps seconds have passed
-        }
+        // Calculate delta
+        const dt_ns = loop_timer.lap();
+        const dt_s = @intToFloat(f32, dt_ns) / @intToFloat(f32, std.time.ns_per_s);
+        player.update(dt_s);
+        // TODO: Game objects
 
-        // Draw to screen
-        _ = sdl.render_clear(renderer);
-        head.spr.draw(renderer);
-        // TODO: Make all the game objects
-        _ = sdl.render_present(renderer);
+        // Don't render until 1/fps seconds have passed
+        elapsed_time_ns += dt_ns;
+        const min_dt_us = std.time.us_per_s / settings.FPS;
+        const min_dt_ns = min_dt_us * std.time.ns_per_us;
+        if(elapsed_time_ns > min_dt_ns) {
+            elapsed_time_ns = 0;
+        
+            // Draw to screen
+            _ = sdl.renderClear(renderer);
+            player.draw(renderer);
+            // TODO: Make all the game objects
+            _ = sdl.renderPresent(renderer);
+        }
     }
 }
 

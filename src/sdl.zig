@@ -20,28 +20,29 @@ pub const QUIT = csdl.SDL_QUIT;
 
 pub const init = csdl.SDL_Init;
 pub const log = csdl.SDL_Log;
-pub const get_error = csdl.SDL_GetError;
+pub const getError = csdl.SDL_GetError;
 pub const quit = csdl.SDL_Quit;
-pub const poll_event = csdl.SDL_PollEvent;
+pub const pollEvent = csdl.SDL_PollEvent;
 pub const delay = csdl.SDL_Delay;
 
-pub const img_init = csdl.IMG_Init;
-pub const img_get_error = csdl.IMG_GetError;
-pub const img_quit = csdl.IMG_Quit;
-pub const img_load = csdl.IMG_Load;
+pub const imgInit = csdl.IMG_Init;
+pub const imgGetError = csdl.IMG_GetError;
+pub const imgQuit = csdl.IMG_Quit;
+pub const imgLoad = csdl.IMG_Load;
 
-pub const create_renderer = csdl.SDL_CreateRenderer;
-pub const destroy_renderer = csdl.SDL_DestroyRenderer;
-pub const set_render_draw_color = csdl.SDL_SetRenderDrawColor;
-pub const render_clear = csdl.SDL_RenderClear;
-pub const render_present = csdl.SDL_RenderPresent;
-pub const render_copy = csdl.SDL_RenderCopy;
+pub const createRenderer = csdl.SDL_CreateRenderer;
+pub const destroyRenderer = csdl.SDL_DestroyRenderer;
+pub const setRenderDrawColor = csdl.SDL_SetRenderDrawColor;
+pub const renderClear = csdl.SDL_RenderClear;
+pub const renderPresent = csdl.SDL_RenderPresent;
+pub const renderCopy = csdl.SDL_RenderCopy;
 
-pub const create_window = csdl.SDL_CreateWindow;
-pub const destroy_window = csdl.SDL_DestroyWindow;
+pub const createWindow = csdl.SDL_CreateWindow;
+pub const destroyWindow = csdl.SDL_DestroyWindow;
 
-pub const free_surface = csdl.SDL_FreeSurface;
+pub const freeSurface = csdl.SDL_FreeSurface;
 
-pub const create_texture_from_surface = csdl.SDL_CreateTextureFromSurface;
-pub const query_texture = csdl.SDL_QueryTexture;
+pub const createTextureFromSurface = csdl.SDL_CreateTextureFromSurface;
+pub const queryTexture = csdl.SDL_QueryTexture;
+pub const destroyTexture = csdl.SDL_DestroyTexture;
 
