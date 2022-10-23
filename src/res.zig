@@ -4,6 +4,10 @@
 const sdl = @import("sdl.zig");
 const err = @import("error.zig");
 
+// Unnecessary refactor: Split Texture and Sprite into two structs
+// Alla Font and Text
+// There are reused images throughout sprites. There are work arounds, but are non-ideal
+// So that's a good refactor
 pub const Sprite = struct {
     tex: *sdl.Texture,
     x: f32,
@@ -81,6 +85,85 @@ pub const Sprite = struct {
 
     pub fn deinit(spr: *Sprite) void {
         sdl.destroyTexture(spr.tex);
+    }
+};
+
+pub const Font = struct {
+    font: *sdl.Font,
+
+    pub fn init(file_name: *const u8, size: i32) !Font {
+        const font = sdl.openFont(file_name, size) orelse {
+            sdl.log(
+                "Unable to load font '%s'! SDL_ttf: %s",
+                file_name, sdl.ttfGetError()
+            );
+            return err.SnakeError.FontLoadFailed;
+        };
+
+        return Font {
+            .font = font
+        };
+    }
+
+    pub fn deinit(font: *Font) void {
+        sdl.closeFont(font.font);
+    }
+};
+
+pub const Text = struct {
+    tex: *sdl.Texture,
+    x: f32,
+    y: f32,
+    width: i32,
+    height: i32,
+
+    pub fn init(
+            font: *Font, text: *const u8, r: u8, g: u8, b: u8, a: u8,
+            renderer: *sdl.Renderer) !Text {
+        const color = sdl.Color {
+            .r = r,
+            .g = g,
+            .b = b,
+            .a = a
+        };
+        const text_surface = sdl.renderTextSolid(font.font, text, color) orelse {
+            sdl.log(
+                "Unable to create text '%s'! SDL_ttf: %s",
+                text, sdl.ttfGetError()
+            );
+            return err.SnakeError.FontLoadFailed;
+        };
+        defer sdl.freeSurface(text_surface);
+
+        const tex = sdl.createTextureFromSurface(renderer, text_surface) orelse {
+            sdl.log(
+                "Unable to create texture from surface for text '%s'! SDL_ttf: %s",
+                text, sdl.ttfGetError()
+            );
+            return err.SnakeError.FontLoadFailed;
+        };
+
+        return Text {
+            .tex = tex,
+            .x = 0.0,
+            .y = 0.0,
+            .width = text_surface.*.w,
+            .height = text_surface.*.h
+        };
+    }
+
+    pub fn draw(text: *Text, renderer: *sdl.Renderer) void {
+        var dest = sdl.Rect {
+            .x = @floatToInt(i32, text.x),
+            .y = @floatToInt(i32, text.y),
+            .w = text.width,
+            .h = text.height
+        };
+        _ = sdl.renderCopy(renderer, text.tex, null, &dest);
+    }
+
+    pub fn deinit(text: *Text) void {
+        sdl.destroyTexture(text.tex);
     }
 };
 

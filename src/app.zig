@@ -18,11 +18,13 @@ const GameState = enum {
 pub const App = struct {
     window: *sdl.Window,
     renderer: *sdl.Renderer,
+    font: res.Font,
 
     // Game objects
     player: snake.Snake,
     title_spr: res.Sprite,
     wall_sprs: [8]res.Sprite,
+    game_over_txt: res.Text,
 
     state: GameState,
 
@@ -47,9 +49,17 @@ pub const App = struct {
             return err.SnakeError.ImgInitFailed;
         }
 
+        if(sdl.ttfInit() == -1) {
+            sdl.log("Unable to initialize SDL_ttf: %s", sdl.ttfGetError());
+            return err.SnakeError.TtfInitFailed;
+        }
+
+        var font = try res.Font.init(@ptrCast(*const u8, "fonts/Ubuntu-R.ttf"), 32);
+
         return App {
             .renderer = renderer,
             .window = window,
+            .font = font,
 
             .player = undefined,
             .title_spr = try res.Sprite.init(@ptrCast(*const u8, "img/title.png"), renderer),
@@ -63,6 +73,10 @@ pub const App = struct {
                 try res.Sprite.init(@ptrCast(*const u8, "img/wall_bottom.png"), renderer),
                 try res.Sprite.init(@ptrCast(*const u8, "img/wall_left.png"), renderer)
             },
+
+            .game_over_txt = try res.Text.init(
+                &font, @ptrCast(*const u8, "Game Over"), 0xFF, 0xFF, 0xFF, 0xFF, renderer
+            ),
 
             .state = GameState.Title
         };
@@ -89,6 +103,13 @@ pub const App = struct {
                     app.state = GameState.GameOver;
                 }
             }, GameState.GameOver => {
+                app.game_over_txt.x = @intToFloat(
+                    f32, settings.WINDOW_WIDTH / 2 - @divTrunc(app.game_over_txt.width, 2)
+                );
+                app.game_over_txt.y = @intToFloat(
+                    f32, settings.WINDOW_HEIGHT / 2 - @divTrunc(app.game_over_txt.height, 2)
+                );
+
                 const kb_state = sdl.getKeyboardState(null);
                 if(kb_state[sdl.SCANCODE_SPACE] != 0) {
                     app.state = GameState.Reset;
@@ -139,6 +160,10 @@ pub const App = struct {
 
                 // TODO: Make all the game objects render
                 app.player.draw(app.renderer); // draw last so it's on top
+                
+                if(app.state == GameState.GameOver) {
+                    app.game_over_txt.draw(app.renderer);
+                }
             }
         }
 
@@ -146,6 +171,8 @@ pub const App = struct {
     }
 
     pub fn deinit(app: *App) void {
+        app.game_over_txt.deinit();
+        app.font.deinit();
         switch(app.state) {
             GameState.Title => {},
             else => {
@@ -154,6 +181,7 @@ pub const App = struct {
         }
         sdl.destroyRenderer(app.renderer);
         sdl.destroyWindow(app.window);
+        sdl.ttfQuit();
         sdl.imgQuit();
         sdl.quit();
     }

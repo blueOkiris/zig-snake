@@ -7,13 +7,13 @@
 
 SDL_SRC_URL :=		https://github.com/libsdl-org/SDL/archive/refs/tags/release-2.24.1.tar.gz
 SDL_IMG_SRC_URL :=	https://github.com/libsdl-org/SDL_image/archive/refs/tags/release-2.6.2.tar.gz
-SDL_TTF_SRC_URL :=	https://github.com/libsdl-org/SDL_ttf/archive/refs/tags/release-2.20.0.tar.gz
+SDL_TTF_SRC_URL :=	https://github.com/libsdl-org/SDL_ttf/releases/download/release-2.20.0/SDL2_ttf-2.20.0.tar.gz
 SDL_SRC :=			sdl2.tar.gz
 SDL_IMG_SRC :=		sdl2-img.tar.gz
 SDL_TTF_SRC :=		sdl2-ttf.tar.gz
 DEF_SDL_FLDR :=		SDL-release-2.24.1/
 DEF_SDL_IMG_FLDR :=	SDL_image-release-2.6.2/
-DEF_SDL_TTF_FLDR := SDL_ttf-release-2.20.0/
+DEF_SDL_TTF_FLDR := SDL2_ttf-2.20.0/
 SDL_FLDR :=			sdl2/
 SDL_IMG_FLDR :=		sdl2-img/
 SDL_TTF_FLDR :=		sdl2-ttf/
@@ -46,9 +46,17 @@ run: ${OBJNAME}
 .PHONY: clean
 clean:
 	rm -rf ${SDL_SRC}
+	rm -rf ${SDL_IMG_SRC}
+	rm -rf ${SDL_TTF_SRC}
 	rm -rf ${SDL_FLDR}
+	rm -rf ${SDL_IMG_FLDR}
+	rm -rf ${SDL_TTF_FLDR}
+	rm -rf fonts/
+	rm -rf *.zip
+	rm -rf ${UB_FONT_FLDR}
+	rm -rf __MACOSX/
 	rm -rf build/
-	rm -rf libSDL2.a
+	rm -rf *.a
 	rm -rf zig-out/
 	rm -rf zig-cache/
 	rm -rf ${OBJNAME}
@@ -98,7 +106,7 @@ libSDL2_image.a: ${SDL_IMG_FLDR}
 
 libSDL2_ttf.a: ${SDL_TTF_FLDR}
 	cd ${SDL_TTF_FLDR}; mkdir -p build
-	cd ${SDL_TTF_FLDR}build; ../configure --disable-freetype-builtin --disable-harfbuzz-builtin
+	cd ${SDL_TTF_FLDR}build; ../configure
 	${MAKE} -C ${SDL_TTF_FLDR}build -j${shell nproc}
 	cp ${SDL_TTF_FLDR}build/.libs/libSDL2_ttf.a ./$@
 

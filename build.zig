@@ -26,7 +26,7 @@ pub fn build(b: *std.build.Builder) void {
     exe.linkSystemLibrary("SDL2_image");
 
     // Add SDL2_ttf deps
-    exe.addIncludeDir("sdl2-ttf/include/");
+    exe.addIncludeDir("sdl2-ttf/");
     exe.linkSystemLibrary("SDL2_ttf");
 
     // Extras to make everything work

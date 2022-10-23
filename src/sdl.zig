@@ -6,6 +6,7 @@
 const csdl = @cImport({
     @cInclude("SDL.h");
     @cInclude("SDL_image.h");
+    @cInclude("SDL_ttf.h");
 });
 
 pub const Renderer = csdl.SDL_Renderer;
@@ -13,6 +14,8 @@ pub const Window = csdl.SDL_Window;
 pub const Texture = csdl.SDL_Texture;
 pub const Event = csdl.SDL_Event;
 pub const Rect = csdl.SDL_Rect;
+pub const Color = csdl.SDL_Color;
+pub const Font = csdl.TTF_Font;
 
 pub const INIT_VIDEO = csdl.SDL_INIT_VIDEO;
 pub const RENDERER_ACCELERATED = csdl.SDL_RENDERER_ACCELERATED;
@@ -38,6 +41,10 @@ pub const imgGetError = csdl.IMG_GetError;
 pub const imgQuit = csdl.IMG_Quit;
 pub const imgLoad = csdl.IMG_Load;
 
+pub const ttfInit = csdl.TTF_Init;
+pub const ttfQuit = csdl.TTF_Quit;
+pub const ttfGetError = csdl.TTF_GetError;
+
 pub const createRenderer = csdl.SDL_CreateRenderer;
 pub const destroyRenderer = csdl.SDL_DestroyRenderer;
 pub const setRenderDrawColor = csdl.SDL_SetRenderDrawColor;
@@ -54,4 +61,8 @@ pub const freeSurface = csdl.SDL_FreeSurface;
 pub const createTextureFromSurface = csdl.SDL_CreateTextureFromSurface;
 pub const queryTexture = csdl.SDL_QueryTexture;
 pub const destroyTexture = csdl.SDL_DestroyTexture;
+
+pub const openFont = csdl.TTF_OpenFont;
+pub const closeFont = csdl.TTF_CloseFont;
+pub const renderTextSolid = csdl.TTF_RenderText_Solid;
 

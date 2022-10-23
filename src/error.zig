@@ -4,6 +4,8 @@
 pub const SnakeError = error {
     InitFailed,
     ImgInitFailed,
-    ImageLoadFailed
+    TtfInitFailed,
+    ImageLoadFailed,
+    FontLoadFailed
 };
 
