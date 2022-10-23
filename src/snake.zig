@@ -6,14 +6,6 @@ const sdl = @import("sdl.zig");
 const res = @import("res.zig");
 const settings = @import("settings.zig");
 
-pub const SnakeState = enum {
-    Invisible,
-    Reset,
-    Moving,
-    Eating,
-    Dead
-};
-
 // Actually the Snake*Head*, but ya know it's also the "main" part of the snake, so yeah
 pub const Snake = struct {
     spr: res.Sprite,
@@ -21,18 +13,21 @@ pub const Snake = struct {
     y: f32,
     spd: u32,
     bodies: std.ArrayList(Body),
-
-    state: SnakeState,
+    dead: bool,
 
     pub fn init(renderer: *sdl.Renderer) !Snake {
-        // Create initial bodies (3 currently)
+        // Create initial bodies (3 currently) and use it to set the start location
         var start_body = try Body.init(renderer);
         start_body.x = ((settings.WINDOW_WIDTH / 32) / 2 - 1) * 32;
         start_body.y = ((settings.WINDOW_HEIGHT / 32) / 2) * 32;
+        start_body.following = true;
+
         var bodies = std.ArrayList(Body).init(std.heap.page_allocator);
         try bodies.append(start_body);
         start_body.x += 32;
         try bodies.append(start_body);
+        (&bodies.items[1]).parent = &bodies.items[0];
+        
         start_body.x += 32; // Set up for head location
 
         return Snake {
@@ -41,7 +36,7 @@ pub const Snake = struct {
             .y = start_body.y,
             .spd = settings.DEF_SNAKE_SPD,
             .bodies = bodies,
-            .state = SnakeState.Invisible
+            .dead = false
         };
     }
 
@@ -55,17 +50,16 @@ pub const Snake = struct {
             body.update(dt);
             i += 1;
         }
+
+        if(!snake.dead) {
+
+        }
     }
 
     pub fn draw(snake: *const Snake, renderer: *sdl.Renderer) void {
-        switch(snake.state) {
-            SnakeState.Invisible => {},
-            else => {
-                snake.spr.draw(renderer);
-                for(snake.bodies.items) |body| {
-                    body.draw(renderer);
-                }
-            }
+        snake.spr.draw(renderer);
+        for(snake.bodies.items) |body| {
+            body.draw(renderer);
         }
     }
 
@@ -91,6 +85,8 @@ var BODY_SPR: res.Sprite = undefined;
 const Body = struct {
     x: f32,
     y: f32,
+    parent: *Body,
+    following: bool,
 
     pub fn init(renderer: *sdl.Renderer) !Body {
         if(!BODY_SPR_INITTED) {
@@ -99,7 +95,9 @@ const Body = struct {
         }
         return Body {
             .x = 0.0,
-            .y = 0.0
+            .y = 0.0,
+            .parent = undefined,
+            .following = false
         };
     }
 

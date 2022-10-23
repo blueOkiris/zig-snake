@@ -29,8 +29,7 @@ pub fn main() !void {
         // Calculate delta
         const dt_ns = timer.lap();
         const dt_s = @intToFloat(f64, dt_ns) / @intToFloat(f64, std.time.ns_per_s);
-        game.update(dt_s);
-
+        
         // Don't render until 1/fps seconds have passed
         elapsed_time_s += dt_s;
         const min_dt_s = 1.0 / @intToFloat(f64, settings.FPS);
@@ -40,6 +39,9 @@ pub fn main() !void {
             // Draw to screen
             game.draw();
         }
+
+        // Always update
+        try game.update(dt_s);
     }
 }
 

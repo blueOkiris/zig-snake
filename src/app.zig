@@ -50,7 +50,7 @@ pub const App = struct {
             .renderer = renderer,
             .window = window,
 
-            .player = try snake.Snake.init(renderer),
+            .player = undefined,
             .title_spr = try res.Sprite.init(@ptrCast(*const u8, "img/title.png"), renderer),
             .wall_sprs = .{
                 try res.Sprite.init(@ptrCast(*const u8, "img/corner_tl.png"), renderer),
@@ -73,23 +73,21 @@ pub const App = struct {
         }
     }
 
-    pub fn update(app: *App, dt: f64) void {
-        app.player.update(dt);
-        // TODO: Other game objects
-        
+    pub fn update(app: *App, dt: f64) !void {
         switch(app.state) {
             GameState.Title => {
                 const kb_state = sdl.getKeyboardState(null);
                 if(kb_state[sdl.SCANCODE_SPACE] != 0) {
+                    app.player = try snake.Snake.init(app.renderer);
                     app.state = GameState.Playing;
-                    app.player.state = snake.SnakeState.Reset;
                 }
-            }, GameState.Playing => {},
-            GameState.GameOver => {
+            }, GameState.Playing => {
+                app.player.update(dt);
+            }, GameState.GameOver => {
                 const kb_state = sdl.getKeyboardState(null);
                 if(kb_state[sdl.SCANCODE_SPACE] != 0) {
+                    app.player.deinit();
                     app.state = GameState.Title;
-                    app.player.state = snake.SnakeState.Invisible;
                 }
             }
         }
