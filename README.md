@@ -4,6 +4,10 @@
 
 A snake clone in Zig with statically-compiled SDL2
 
+![title](/img/title-screen.png)
+
+![gameplay](/img/gameplay-screen.png)
+
 ## Purpose
 
 The purpose of making this is to serve 1) as a learning exercise and 2) as a starting point for others who want to learn Zig.
