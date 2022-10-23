@@ -13,7 +13,7 @@ pub const Snake = struct {
     y: f32,
     tile_x: f32,
     tile_y: f32,
-    spd: u32,
+    spd: f32,
     bodies: std.ArrayList(Body),
     dead: bool,
     dir: u8,
@@ -25,6 +25,7 @@ pub const Snake = struct {
     score_text: res.Text,
     rnd: *std.rand.Xoshiro256,
     apple: Apple,
+    renderer: *sdl.Renderer,
 
     pub fn init(font: *res.Font, renderer: *sdl.Renderer, rnd: *std.rand.Xoshiro256) !Snake {
         // Create initial bodies (3 currently) and use it to set the start location
@@ -72,11 +73,12 @@ pub const Snake = struct {
             .font = font,
             .score_text = score_text,
             .rnd = rnd,
-            .apple = try Apple.init(renderer, rnd)
+            .apple = try Apple.init(renderer, rnd),
+            .renderer = renderer
         };
     }
 
-    pub fn update(snake: *Snake, dt: f64) void {
+    pub fn update(snake: *Snake, dt: f64) !void {
         if(snake.dead) {
             return;
         }
@@ -113,13 +115,13 @@ pub const Snake = struct {
 
         // Move
         if(snake.dir == 0) {
-            snake.x += @floatCast(f32, @intToFloat(f64, snake.spd) * dt);
+            snake.x += snake.spd * @floatCast(f32, dt);
         } else if(snake.dir == 1) {
-            snake.y += @floatCast(f32, @intToFloat(f64, snake.spd) * dt);
+            snake.y += snake.spd * @floatCast(f32, dt);
         } else if(snake.dir == 2) {
-            snake.x -= @floatCast(f32, @intToFloat(f64, snake.spd) * dt);
+            snake.x -= snake.spd * @floatCast(f32, dt);
         } else if(snake.dir == 3) {
-            snake.y -= @floatCast(f32, @intToFloat(f64, snake.spd) * dt);
+            snake.y -= snake.spd * @floatCast(f32, dt);
         }
 
         // Update dirs
@@ -211,6 +213,36 @@ pub const Snake = struct {
             snake.up_pressed = true;
         } else if(kb_state[sdl.SCANCODE_UP] == 0) {
             snake.up_pressed = false;
+        }
+
+        // Check eat apple
+        if((@fabs(snake.x - snake.apple.x) < 32) and (@fabs(snake.y - snake.apple.y) < 32)) {
+            snake.apple.deinit();
+            snake.apple = try Apple.init(snake.renderer, snake.rnd);
+
+            snake.spd += settings.SPD_INC;
+
+            var body = try Body.init(snake.renderer);
+            body.x = snake.bodies.items[snake.bodies.items.len - 1].x;
+            body.y = snake.bodies.items[snake.bodies.items.len - 1].y;
+            body.parent = &snake.bodies.items[snake.bodies.items.len - 1];
+            body.par_tile_x = snake.bodies.items[snake.bodies.items.len - 1].x;
+            body.par_tile_y = snake.bodies.items[snake.bodies.items.len - 1].y;
+            body.following = true;
+            try snake.bodies.append(body);
+
+            snake.score_text.deinit();
+            var text = try std.fmt.allocPrint(
+                std.heap.page_allocator,
+                "Count: {d}", .{ @intCast(u16, snake.bodies.items.len + 1) }
+            );
+            defer std.heap.page_allocator.free(text);
+            snake.score_text = try res.Text.init(
+                snake.font, @ptrCast(*const u8, text), 0xFF, 0xFF, 0xFF, 0xFF,
+                snake.renderer
+            );
+            snake.score_text.x = 8.0;
+            snake.score_text.y = 8.0;
         }
 
         // Die from walls
@@ -354,10 +386,11 @@ pub const Apple = struct {
     pub fn init(renderer: *sdl.Renderer, rnd: *std.rand.Xoshiro256) !Apple {
         return Apple {
             .x = @divTrunc(
-                32.0 + rnd.random().float(f32) * (settings.WINDOW_WIDTH - 64.0), 32
+                32.0 + rnd.random().float(f32) * (((settings.WINDOW_WIDTH / 32) * 32) - 64.0), 32
             ) * 32,
             .y = @divTrunc(
-                32.0 + rnd.random().float(f32) * (settings.WINDOW_HEIGHT - 64.0), 32
+                32.0
+                    + rnd.random().float(f32) * (((settings.WINDOW_HEIGHT / 32) * 32) - 64.0), 32
             ) * 32,
             .spr = try res.Sprite.init(@ptrCast(*const u8, "img/apple.png"), renderer)
         };

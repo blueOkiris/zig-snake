@@ -99,7 +99,7 @@ pub const App = struct {
                     app.state = GameState.Playing;
                 }
             }, GameState.Playing => {
-                app.player.update(dt);
+                try app.player.update(dt);
 
                 if(app.player.dead) {
                     app.state = GameState.GameOver;
