@@ -152,7 +152,7 @@ pub const Text = struct {
         };
     }
 
-    pub fn draw(text: *Text, renderer: *sdl.Renderer) void {
+    pub fn draw(text: *const Text, renderer: *sdl.Renderer) void {
         var dest = sdl.Rect {
             .x = @floatToInt(i32, text.x),
             .y = @floatToInt(i32, text.y),

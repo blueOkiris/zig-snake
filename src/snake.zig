@@ -21,8 +21,10 @@ pub const Snake = struct {
     down_pressed: bool,
     left_pressed: bool,
     up_pressed: bool,
+    font: *res.Font,
+    score_text: res.Text,
 
-    pub fn init(renderer: *sdl.Renderer) !Snake {
+    pub fn init(font: *res.Font, renderer: *sdl.Renderer) !Snake {
         // Create initial bodies (3 currently) and use it to set the start location
         var start_body = try Body.init(renderer);
         start_body.x = ((settings.WINDOW_WIDTH / 32) / 2) * 32;
@@ -44,6 +46,13 @@ pub const Snake = struct {
         spr.x = start_body.x;
         spr.y = start_body.y;
 
+        var score_text = try res.Text.init(
+            font, @ptrCast(*const u8, "Count: 3"), 0xFF, 0xFF, 0xFF, 0xFF,
+            renderer
+        );
+        score_text.x = 8.0;
+        score_text.y = 8.0;
+
         return Snake {
             .spr = spr,
             .x = start_body.x,
@@ -57,7 +66,9 @@ pub const Snake = struct {
             .right_pressed = false,
             .down_pressed = false,
             .left_pressed = false,
-            .up_pressed = false
+            .up_pressed = false,
+            .font = font,
+            .score_text = score_text
         };
     }
 
@@ -235,6 +246,8 @@ pub const Snake = struct {
 
         // Draw spr last so head is on top
         snake.spr.draw_rotated(renderer, @intToFloat(f64, snake.dir) * 90);
+
+        snake.score_text.draw(renderer);
     }
 
     pub fn deinit(snake: *Snake) void {
@@ -246,6 +259,7 @@ pub const Snake = struct {
             i += 1;
         }
         snake.bodies.deinit();
+        snake.score_text.deinit();
     }
 };
 

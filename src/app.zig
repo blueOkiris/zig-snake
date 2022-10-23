@@ -93,7 +93,7 @@ pub const App = struct {
             GameState.Title => {
                 const kb_state = sdl.getKeyboardState(null);
                 if(kb_state[sdl.SCANCODE_SPACE] != 0) {
-                    app.player = try snake.Snake.init(app.renderer);
+                    app.player = try snake.Snake.init(&app.font, app.renderer);
                     app.state = GameState.Playing;
                 }
             }, GameState.Playing => {
