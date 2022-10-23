@@ -19,6 +19,11 @@ pub const RENDERER_ACCELERATED = csdl.SDL_RENDERER_ACCELERATED;
 pub const INIT_PNG = csdl.IMG_INIT_PNG;
 pub const QUIT = csdl.SDL_QUIT;
 pub const SCANCODE_SPACE = csdl.SDL_SCANCODE_SPACE;
+pub const SCANCODE_RIGHT = csdl.SDL_SCANCODE_RIGHT;
+pub const SCANCODE_DOWN = csdl.SDL_SCANCODE_DOWN;
+pub const SCANCODE_LEFT = csdl.SDL_SCANCODE_LEFT;
+pub const SCANCODE_UP = csdl.SDL_SCANCODE_UP;
+pub const FLIP_NONE = csdl.SDL_FLIP_NONE;
 
 pub const init = csdl.SDL_Init;
 pub const log = csdl.SDL_Log;
@@ -39,6 +44,7 @@ pub const setRenderDrawColor = csdl.SDL_SetRenderDrawColor;
 pub const renderClear = csdl.SDL_RenderClear;
 pub const renderPresent = csdl.SDL_RenderPresent;
 pub const renderCopy = csdl.SDL_RenderCopy;
+pub const renderCopyEx = csdl.SDL_RenderCopyEx;
 
 pub const createWindow = csdl.SDL_CreateWindow;
 pub const destroyWindow = csdl.SDL_DestroyWindow;

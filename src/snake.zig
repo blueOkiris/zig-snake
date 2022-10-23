@@ -16,6 +16,11 @@ pub const Snake = struct {
     spd: u32,
     bodies: std.ArrayList(Body),
     dead: bool,
+    dir: u8,
+    right_pressed: bool,
+    down_pressed: bool,
+    left_pressed: bool,
+    up_pressed: bool,
 
     pub fn init(renderer: *sdl.Renderer) !Snake {
         // Create initial bodies (3 currently) and use it to set the start location
@@ -47,7 +52,12 @@ pub const Snake = struct {
             .tile_y = start_body.y,
             .spd = settings.DEF_SNAKE_SPD,
             .bodies = bodies,
-            .dead = false
+            .dead = false,
+            .dir = 0,
+            .right_pressed = false,
+            .down_pressed = false,
+            .left_pressed = false,
+            .up_pressed = false
         };
     }
 
@@ -59,32 +69,136 @@ pub const Snake = struct {
         // Only draw snapped grid
         var new_tile_x = @trunc(@floor(snake.x) / 32) * 32;
         var new_tile_y = @trunc(@floor(snake.y) / 32) * 32;
-        if(@fabs(snake.tile_y - new_tile_y) >= 32.0) {
-            snake.bodies.items[0].x = snake.tile_x;
-
-            snake.spr.y = new_tile_y;
-            snake.tile_y = new_tile_y;
-        }
         if(@fabs(snake.tile_x - new_tile_x) >= 31.5) {
             snake.bodies.items[0].x = snake.tile_x;
+            snake.bodies.items[0].y = snake.tile_y;
+            snake.bodies.items[0].rot = @intToFloat(f64, snake.dir) * 90;
 
             snake.spr.x = new_tile_x;
             snake.tile_x = new_tile_x;
         }
-        
-        // Have bodies update
-        var i: u32 = 0;
-        while(i < snake.bodies.items.len) {
-            var body = &snake.bodies.items[i];
+        if(@fabs(snake.tile_y - new_tile_y) >= 32.0) {
+            snake.bodies.items[0].x = snake.tile_x;
+            snake.bodies.items[0].y = snake.tile_y;
+            snake.bodies.items[0].rot = @intToFloat(f64, snake.dir) * 90;
+
+            snake.spr.y = new_tile_y;
+            snake.tile_y = new_tile_y;
+        }
+                
+        // Have bodies update. Reverse order for properly following
+        var i: usize = snake.bodies.items.len;
+        while(i > 0) {
+            var body = &snake.bodies.items[i - 1];
             body.update(dt);
-            i += 1;
+            i -= 1;
         }
 
         // Move
-        snake.x += @floatCast(f32, @intToFloat(f64, snake.spd) * dt);
+        if(snake.dir == 0) {
+            snake.x += @floatCast(f32, @intToFloat(f64, snake.spd) * dt);
+        } else if(snake.dir == 1) {
+            snake.y += @floatCast(f32, @intToFloat(f64, snake.spd) * dt);
+        } else if(snake.dir == 2) {
+            snake.x -= @floatCast(f32, @intToFloat(f64, snake.spd) * dt);
+        } else if(snake.dir == 3) {
+            snake.y -= @floatCast(f32, @intToFloat(f64, snake.spd) * dt);
+        }
+
+        // Update dirs
+        const kb_state = sdl.getKeyboardState(null);
+        if(kb_state[sdl.SCANCODE_RIGHT] != 0 and !snake.right_pressed) {
+            // Transfer distance moved to new direction
+            if(snake.dir == 1) {
+                const diff = snake.y - snake.tile_y;
+                snake.x = snake.tile_x + diff;
+                snake.y = snake.tile_y;
+            } else if(snake.dir == 2) {
+                const diff = snake.tile_x + 32.0 - snake.x;
+                snake.x = snake.tile_x + diff;
+                snake.y = snake.tile_y;
+            } else if(snake.dir == 3) {
+                const diff = snake.tile_y + 32.0 - snake.y;
+                snake.x = snake.tile_x + diff;
+                snake.y = snake.tile_y;
+            }
+
+            snake.dir = 0;
+
+            snake.right_pressed = true;
+        } else if(kb_state[sdl.SCANCODE_RIGHT] == 0) {
+            snake.right_pressed = false;
+        }
+        if(kb_state[sdl.SCANCODE_LEFT] != 0 and !snake.left_pressed) {
+            // Transfer distance moved to new direction
+            if(snake.dir == 0) {
+                const diff = snake.x - snake.tile_x;
+                snake.x = snake.tile_x + 32.0 - diff;
+                snake.y = snake.tile_y;
+            } else if(snake.dir == 1) {
+                const diff = snake.y - snake.tile_y;
+                snake.x = snake.tile_x + 32.0 - diff;
+                snake.y = snake.tile_y;
+            } else if(snake.dir == 3) {
+                const diff = snake.tile_y + 32.0 - snake.y;
+                snake.x = snake.tile_x + 32.0 - diff;
+                snake.y = snake.tile_y;
+            }
+
+            snake.dir = 2;
+
+            snake.left_pressed = true;
+        } else if(kb_state[sdl.SCANCODE_LEFT] == 0) {
+            snake.left_pressed = false;
+        }
+        if(kb_state[sdl.SCANCODE_DOWN] != 0 and !snake.down_pressed) {
+            // Transfer distance moved to new direction
+            if(snake.dir == 0) {
+                const diff = snake.x - snake.tile_x;
+                snake.x = snake.tile_x;
+                snake.y = snake.tile_y + diff;
+            } else if(snake.dir == 2) {
+                const diff = snake.tile_x + 32.0 - snake.x;
+                snake.x = snake.tile_x;
+                snake.y = snake.tile_y + diff;
+            } else if(snake.dir == 3) {
+                const diff = snake.tile_y + 32.0 - snake.y;
+                snake.x = snake.tile_x;
+                snake.y = snake.tile_y + diff;
+            }
+
+            snake.dir = 1;
+
+            snake.down_pressed = true;
+        } else if(kb_state[sdl.SCANCODE_DOWN] == 0) {
+            snake.down_pressed = false;
+        }
+        if(kb_state[sdl.SCANCODE_UP] != 0 and !snake.up_pressed) {
+            // Transfer distance moved to new direction
+            if(snake.dir == 0) {
+                const diff = snake.x - snake.tile_x;
+                snake.x = snake.tile_x;
+                snake.y = snake.tile_y + 32.0 - diff;
+            } else if(snake.dir == 1) {
+                const diff = snake.tile_y - snake.y;
+                snake.x = snake.tile_x;
+                snake.y = snake.tile_y + 32.0 - diff;
+            } else if(snake.dir == 2) {
+                const diff = snake.tile_x + 32.0 - snake.x;
+                snake.x = snake.tile_x;
+                snake.y = snake.tile_y + 32.0 - diff;
+            }
+
+            snake.dir = 3;
+
+            snake.up_pressed = true;
+        } else if(kb_state[sdl.SCANCODE_UP] == 0) {
+            snake.up_pressed = false;
+        }
 
         // Die from walls
-        if(new_tile_x > settings.WINDOW_WIDTH - 63.5) {
+        if((new_tile_x < 32) or (new_tile_x > (settings.WINDOW_WIDTH / 32) * 32 - 63.5)
+                or (new_tile_y < 32) or (new_tile_y > (settings.WINDOW_HEIGHT / 32) * 32 - 63.5)) {
             snake.dead = true;
             i = 0;
             while(i < snake.bodies.items.len) {
@@ -96,7 +210,7 @@ pub const Snake = struct {
     }
 
     pub fn draw(snake: *const Snake, renderer: *sdl.Renderer) void {
-        snake.spr.draw(renderer);
+        snake.spr.draw_rotated(renderer, @intToFloat(f64, snake.dir) * 90);
         for(snake.bodies.items) |body| {
             body.draw(renderer);
         }
@@ -126,8 +240,10 @@ const Body = struct {
     y: f32,
     par_tile_x: f32,
     par_tile_y: f32,
+    par_rot: f64,
     parent: *Body,
     following: bool,
+    rot: f64,
 
     pub fn init(renderer: *sdl.Renderer) !Body {
         if(!BODY_SPR_INITTED) {
@@ -140,8 +256,10 @@ const Body = struct {
             .y = 0.0,
             .par_tile_x = 0.0,
             .par_tile_y = 0.0,
+            .par_rot = 0.0,
             .parent = undefined,
-            .following = false
+            .following = false,
+            .rot = 0.0
         };
     }
 
@@ -154,18 +272,26 @@ const Body = struct {
         // To add new ones, just append and point to the end of ArrayList
         if(@fabs(body.parent.x - body.par_tile_x) >= 31.5) {
             body.x = body.par_tile_x;
+            body.y = body.par_tile_y;
             body.par_tile_x = body.parent.x;
+
+            body.rot = body.par_rot;
+            body.par_rot = body.parent.rot;
         }
         if(@fabs(body.parent.y - body.par_tile_y) >= 31.5) {
+            body.x = body.par_tile_x;
             body.y = body.par_tile_y;
             body.par_tile_y = body.parent.y;
+
+            body.rot = body.par_rot;
+            body.par_rot = body.parent.rot;
         }
     }
 
     pub fn draw(body: *const Body, renderer: *sdl.Renderer) void {
         BODY_SPR.x = body.x;
         BODY_SPR.y = body.y;
-        BODY_SPR.draw(renderer);
+        BODY_SPR.draw_rotated(renderer, body.rot);
     }
 
     pub fn deinit(_: *Body) void {

@@ -43,7 +43,7 @@ pub const Sprite = struct {
             .width = tex_width,
             .height = tex_height,
             .scale_x = 1.0,
-            .scale_y = 1.0
+            .scale_y = 1.0,
         };
     }
 
@@ -61,6 +61,22 @@ pub const Sprite = struct {
             .h = @floatToInt(i32, @intToFloat(f32, spr.height) * spr.scale_y)
         };
         _ = sdl.renderCopy(renderer, spr.tex, &src, &dest);
+    }
+
+    pub fn draw_rotated(spr: *const Sprite, renderer: *sdl.Renderer, rot: f64) void {
+        var src = sdl.Rect {
+            .x = 0,
+            .y = 0,
+            .w = spr.width,
+            .h = spr.height
+        };
+        var dest = sdl.Rect {
+            .x = @floatToInt(i32, spr.x),
+            .y = @floatToInt(i32, spr.y),
+            .w = @floatToInt(i32, @intToFloat(f32, spr.width) * spr.scale_x),
+            .h = @floatToInt(i32, @intToFloat(f32, spr.height) * spr.scale_y)
+        };
+        _ = sdl.renderCopyEx(renderer, spr.tex, &src, &dest, rot, null, sdl.FLIP_NONE);
     }
 
     pub fn deinit(spr: *Sprite) void {
