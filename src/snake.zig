@@ -11,6 +11,8 @@ pub const Snake = struct {
     spr: res.Sprite,
     x: f32,
     y: f32,
+    tile_x: f32,
+    tile_y: f32,
     spd: u32,
     bodies: std.ArrayList(Body),
     dead: bool,
@@ -18,22 +20,31 @@ pub const Snake = struct {
     pub fn init(renderer: *sdl.Renderer) !Snake {
         // Create initial bodies (3 currently) and use it to set the start location
         var start_body = try Body.init(renderer);
-        start_body.x = ((settings.WINDOW_WIDTH / 32) / 2 - 1) * 32;
+        start_body.x = ((settings.WINDOW_WIDTH / 32) / 2) * 32;
         start_body.y = ((settings.WINDOW_HEIGHT / 32) / 2) * 32;
-        start_body.following = true;
+        start_body.par_tile_x = start_body.x;
+        start_body.par_tile_y = start_body.y;
+        start_body.following = false;
 
         var bodies = std.ArrayList(Body).init(std.heap.page_allocator);
         try bodies.append(start_body);
-        start_body.x += 32;
+        start_body.x -= 32;
+        start_body.following = true;
         try bodies.append(start_body);
         (&bodies.items[1]).parent = &bodies.items[0];
         
-        start_body.x += 32; // Set up for head location
+        start_body.x += 64; // Set up for head location
+
+        var spr = try res.Sprite.init(@ptrCast(*const u8, "img/head.png"), renderer);
+        spr.x = start_body.x;
+        spr.y = start_body.y;
 
         return Snake {
-            .spr = try res.Sprite.init(@ptrCast(*const u8, "img/head.png"), renderer),
+            .spr = spr,
             .x = start_body.x,
             .y = start_body.y,
+            .tile_x = start_body.x - 32,
+            .tile_y = start_body.y,
             .spd = settings.DEF_SNAKE_SPD,
             .bodies = bodies,
             .dead = false
@@ -41,9 +52,27 @@ pub const Snake = struct {
     }
 
     pub fn update(snake: *Snake, dt: f64) void {
-        snake.spr.x = snake.x;
-        snake.spr.y = snake.y;
+        if(snake.dead) {
+            return;
+        }
 
+        // Only draw snapped grid
+        var new_tile_x = @trunc(@floor(snake.x) / 32) * 32;
+        var new_tile_y = @trunc(@floor(snake.y) / 32) * 32;
+        if(@fabs(snake.tile_y - new_tile_y) >= 32.0) {
+            snake.bodies.items[0].x = snake.tile_x;
+
+            snake.spr.y = new_tile_y;
+            snake.tile_y = new_tile_y;
+        }
+        if(@fabs(snake.tile_x - new_tile_x) >= 31.5) {
+            snake.bodies.items[0].x = snake.tile_x;
+
+            snake.spr.x = new_tile_x;
+            snake.tile_x = new_tile_x;
+        }
+        
+        // Have bodies update
         var i: u32 = 0;
         while(i < snake.bodies.items.len) {
             var body = &snake.bodies.items[i];
@@ -51,8 +80,18 @@ pub const Snake = struct {
             i += 1;
         }
 
-        if(!snake.dead) {
+        // Move
+        snake.x += @floatCast(f32, @intToFloat(f64, snake.spd) * dt);
 
+        // Die from walls
+        if(new_tile_x > settings.WINDOW_WIDTH - 63.5) {
+            snake.dead = true;
+            i = 0;
+            while(i < snake.bodies.items.len) {
+                var body = &snake.bodies.items[i];
+                body.following = false;
+                i += 1;
+            }
         }
     }
 
@@ -85,6 +124,8 @@ var BODY_SPR: res.Sprite = undefined;
 const Body = struct {
     x: f32,
     y: f32,
+    par_tile_x: f32,
+    par_tile_y: f32,
     parent: *Body,
     following: bool,
 
@@ -92,16 +133,33 @@ const Body = struct {
         if(!BODY_SPR_INITTED) {
             BODY_SPR = try res.Sprite.init(@ptrCast(*const u8, "img/body.png"), renderer);
             BODY_SPR_INITTED = true;
+            BODY_SPR_DEINITTED = false;
         }
         return Body {
             .x = 0.0,
             .y = 0.0,
+            .par_tile_x = 0.0,
+            .par_tile_y = 0.0,
             .parent = undefined,
             .following = false
         };
     }
 
-    pub fn update(_: *Body, _: f64) void {
+    pub fn update(body: *Body, _: f64) void {
+        if(!body.following) {
+            return;
+        }
+
+        // Parent will have follow off and be controlled by head. All others will follow
+        // To add new ones, just append and point to the end of ArrayList
+        if(@fabs(body.parent.x - body.par_tile_x) >= 31.5) {
+            body.x = body.par_tile_x;
+            body.par_tile_x = body.parent.x;
+        }
+        if(@fabs(body.parent.y - body.par_tile_y) >= 31.5) {
+            body.y = body.par_tile_y;
+            body.par_tile_y = body.parent.y;
+        }
     }
 
     pub fn draw(body: *const Body, renderer: *sdl.Renderer) void {
@@ -114,6 +172,7 @@ const Body = struct {
         if(!BODY_SPR_DEINITTED) {
             BODY_SPR.deinit();
             BODY_SPR_DEINITTED = true;
+            BODY_SPR_INITTED = false;
         }
     }
 };

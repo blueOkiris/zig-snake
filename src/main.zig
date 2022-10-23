@@ -42,6 +42,8 @@ pub fn main() !void {
 
         // Always update
         try game.update(dt_s);
+        
+        sdl.delay(1); // Force delay (doesn't work without).
     }
 }
 

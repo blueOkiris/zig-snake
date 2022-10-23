@@ -26,6 +26,7 @@ pub const getError = csdl.SDL_GetError;
 pub const quit = csdl.SDL_Quit;
 pub const pollEvent = csdl.SDL_PollEvent;
 pub const getKeyboardState = csdl.SDL_GetKeyboardState;
+pub const delay = csdl.SDL_Delay;
 
 pub const imgInit = csdl.IMG_Init;
 pub const imgGetError = csdl.IMG_GetError;

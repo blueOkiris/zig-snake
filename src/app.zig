@@ -11,7 +11,8 @@ const res = @import("res.zig");
 const GameState = enum {
     Title,
     Playing,
-    GameOver
+    GameOver,
+    Reset
 };
 
 pub const App = struct {
@@ -83,9 +84,18 @@ pub const App = struct {
                 }
             }, GameState.Playing => {
                 app.player.update(dt);
+
+                if(app.player.dead) {
+                    app.state = GameState.GameOver;
+                }
             }, GameState.GameOver => {
                 const kb_state = sdl.getKeyboardState(null);
                 if(kb_state[sdl.SCANCODE_SPACE] != 0) {
+                    app.state = GameState.Reset;
+                }
+            }, GameState.Reset => {
+                const kb_state = sdl.getKeyboardState(null);
+                if(kb_state[sdl.SCANCODE_SPACE] == 0) {
                     app.player.deinit();
                     app.state = GameState.Title;
                 }
@@ -100,9 +110,6 @@ pub const App = struct {
             GameState.Title => {
                 app.title_spr.draw(app.renderer);
             }, else => {
-                app.player.draw(app.renderer);
-                // TODO: Make all the game objects render
-
                 app.wall_sprs[0].draw(app.renderer);
                 app.wall_sprs[1].x = @intToFloat(f32, (settings.WINDOW_WIDTH / 32) * 32 - 32);
                 app.wall_sprs[1].draw(app.renderer);
@@ -129,6 +136,9 @@ pub const App = struct {
                     app.wall_sprs[7].draw(app.renderer);
                     y += 1;
                 }
+
+                // TODO: Make all the game objects render
+                app.player.draw(app.renderer); // draw last so it's on top
             }
         }
 
@@ -136,7 +146,12 @@ pub const App = struct {
     }
 
     pub fn deinit(app: *App) void {
-        app.player.deinit();
+        switch(app.state) {
+            GameState.Title => {},
+            else => {
+                app.player.deinit();
+            }
+        }
         sdl.destroyRenderer(app.renderer);
         sdl.destroyWindow(app.window);
         sdl.imgQuit();
