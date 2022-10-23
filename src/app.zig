@@ -1,6 +1,7 @@
 // Author: Dylan Turner
 // Description: Contain SDL set up and such
 
+const std = @import("std");
 const sdl = @import("sdl.zig");
 const snake = @import("snake.zig");
 const settings = @import("settings.zig");
@@ -20,6 +21,7 @@ pub const App = struct {
     // Game objects
     player: snake.Snake,
     title_spr: res.Sprite,
+    wall_sprs: [8]res.Sprite,
 
     state: GameState,
 
@@ -39,8 +41,6 @@ pub const App = struct {
             return err.SnakeError.InitFailed;
         };
 
-        _ = sdl.setRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
-
         if(sdl.imgInit(sdl.INIT_PNG) & sdl.INIT_PNG == 0) {
             sdl.log("Unable to initialize SDL_image: %s", sdl.imgGetError());
             return err.SnakeError.ImgInitFailed;
@@ -52,6 +52,16 @@ pub const App = struct {
 
             .player = try snake.Snake.init(renderer),
             .title_spr = try res.Sprite.init(@ptrCast(*const u8, "img/title.png"), renderer),
+            .wall_sprs = .{
+                try res.Sprite.init(@ptrCast(*const u8, "img/corner_tl.png"), renderer),
+                try res.Sprite.init(@ptrCast(*const u8, "img/corner_tr.png"), renderer),
+                try res.Sprite.init(@ptrCast(*const u8, "img/corner_br.png"), renderer),
+                try res.Sprite.init(@ptrCast(*const u8, "img/corner_bl.png"), renderer),
+                try res.Sprite.init(@ptrCast(*const u8, "img/wall_top.png"), renderer),
+                try res.Sprite.init(@ptrCast(*const u8, "img/wall_right.png"), renderer),
+                try res.Sprite.init(@ptrCast(*const u8, "img/wall_bottom.png"), renderer),
+                try res.Sprite.init(@ptrCast(*const u8, "img/wall_left.png"), renderer)
+            },
 
             .state = GameState.Title
         };
@@ -94,6 +104,33 @@ pub const App = struct {
             }, else => {
                 app.player.draw(app.renderer);
                 // TODO: Make all the game objects render
+
+                app.wall_sprs[0].draw(app.renderer);
+                app.wall_sprs[1].x = @intToFloat(f32, (settings.WINDOW_WIDTH / 32) * 32 - 32);
+                app.wall_sprs[1].draw(app.renderer);
+                app.wall_sprs[2].x = @intToFloat(f32, (settings.WINDOW_WIDTH / 32) * 32 - 32);
+                app.wall_sprs[2].y = @intToFloat(f32, (settings.WINDOW_HEIGHT / 32) * 32 - 32);
+                app.wall_sprs[2].draw(app.renderer);
+                app.wall_sprs[3].y = @intToFloat(f32, (settings.WINDOW_HEIGHT / 32) * 32 - 32);
+                app.wall_sprs[3].draw(app.renderer);
+                var x: u32 = 1;
+                while(x < settings.WINDOW_WIDTH / 32 - 1) {
+                    app.wall_sprs[4].x = @intToFloat(f32, x * 32);
+                    app.wall_sprs[4].draw(app.renderer);
+                    app.wall_sprs[6].x = @intToFloat(f32, x * 32);
+                    app.wall_sprs[6].y = @intToFloat(f32, (settings.WINDOW_HEIGHT / 32) * 32 - 32);
+                    app.wall_sprs[6].draw(app.renderer);
+                    x += 1;
+                }
+                var y: u32 = 1;
+                while(y < settings.WINDOW_HEIGHT / 32 - 1) {
+                    app.wall_sprs[5].x = @intToFloat(f32, (settings.WINDOW_WIDTH / 32) * 32 - 32);
+                    app.wall_sprs[5].y = @intToFloat(f32, y * 32);
+                    app.wall_sprs[5].draw(app.renderer);
+                    app.wall_sprs[7].y = @intToFloat(f32, y * 32);
+                    app.wall_sprs[7].draw(app.renderer);
+                    y += 1;
+                }
             }
         }
 

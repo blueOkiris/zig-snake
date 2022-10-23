@@ -8,6 +8,7 @@ const app = @import("app.zig");
 
 pub fn main() !void {
     var game = try app.App.init();
+    defer game.deinit();
 
     var quit = false;
     var timer = try std.time.Timer.start();
