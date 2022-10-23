@@ -25,6 +25,7 @@ pub const App = struct {
     title_spr: res.Sprite,
     wall_sprs: [8]res.Sprite,
     game_over_txt: res.Text,
+    rnd: std.rand.Xoshiro256,
 
     state: GameState,
 
@@ -73,10 +74,11 @@ pub const App = struct {
                 try res.Sprite.init(@ptrCast(*const u8, "img/wall_bottom.png"), renderer),
                 try res.Sprite.init(@ptrCast(*const u8, "img/wall_left.png"), renderer)
             },
-
             .game_over_txt = try res.Text.init(
                 &font, @ptrCast(*const u8, "Game Over"), 0xFF, 0xFF, 0xFF, 0xFF, renderer
             ),
+
+            .rnd = std.rand.DefaultPrng.init(@intCast(u64, std.time.milliTimestamp())),
 
             .state = GameState.Title
         };
@@ -93,7 +95,7 @@ pub const App = struct {
             GameState.Title => {
                 const kb_state = sdl.getKeyboardState(null);
                 if(kb_state[sdl.SCANCODE_SPACE] != 0) {
-                    app.player = try snake.Snake.init(&app.font, app.renderer);
+                    app.player = try snake.Snake.init(&app.font, app.renderer, &app.rnd);
                     app.state = GameState.Playing;
                 }
             }, GameState.Playing => {

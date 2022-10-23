@@ -23,8 +23,10 @@ pub const Snake = struct {
     up_pressed: bool,
     font: *res.Font,
     score_text: res.Text,
+    rnd: *std.rand.Xoshiro256,
+    apple: Apple,
 
-    pub fn init(font: *res.Font, renderer: *sdl.Renderer) !Snake {
+    pub fn init(font: *res.Font, renderer: *sdl.Renderer, rnd: *std.rand.Xoshiro256) !Snake {
         // Create initial bodies (3 currently) and use it to set the start location
         var start_body = try Body.init(renderer);
         start_body.x = ((settings.WINDOW_WIDTH / 32) / 2) * 32;
@@ -68,7 +70,9 @@ pub const Snake = struct {
             .left_pressed = false,
             .up_pressed = false,
             .font = font,
-            .score_text = score_text
+            .score_text = score_text,
+            .rnd = rnd,
+            .apple = try Apple.init(renderer, rnd)
         };
     }
 
@@ -76,6 +80,8 @@ pub const Snake = struct {
         if(snake.dead) {
             return;
         }
+
+        snake.apple.update();
 
         // Only draw snapped grid
         var new_tile_x = @trunc(@floor(snake.x) / 32) * 32;
@@ -244,6 +250,8 @@ pub const Snake = struct {
             body.draw(renderer);
         }
 
+        snake.apple.draw(renderer);
+
         // Draw spr last so head is on top
         snake.spr.draw_rotated(renderer, @intToFloat(f64, snake.dir) * 90);
 
@@ -335,6 +343,37 @@ const Body = struct {
             BODY_SPR_DEINITTED = true;
             BODY_SPR_INITTED = false;
         }
+    }
+};
+
+pub const Apple = struct {
+    x: f32,
+    y: f32,
+    spr: res.Sprite,
+
+    pub fn init(renderer: *sdl.Renderer, rnd: *std.rand.Xoshiro256) !Apple {
+        return Apple {
+            .x = @divTrunc(
+                32.0 + rnd.random().float(f32) * (settings.WINDOW_WIDTH - 64.0), 32
+            ) * 32,
+            .y = @divTrunc(
+                32.0 + rnd.random().float(f32) * (settings.WINDOW_HEIGHT - 64.0), 32
+            ) * 32,
+            .spr = try res.Sprite.init(@ptrCast(*const u8, "img/apple.png"), renderer)
+        };
+    }
+
+    pub fn update(apple: *Apple) void {
+        apple.spr.x = apple.x;
+        apple.spr.y = apple.y;
+    }
+
+    pub fn draw(apple: *const Apple, renderer: *sdl.Renderer) void {
+        apple.spr.draw(renderer);
+    }
+
+    pub fn deinit(apple: *Apple) void {
+        apple.spr.deinit();
     }
 };
 
