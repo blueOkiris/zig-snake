@@ -207,13 +207,34 @@ pub const Snake = struct {
                 i += 1;
             }
         }
+
+        // Die from running into ourself
+        i = 0;
+        while(i < snake.bodies.items.len) {
+            var body = &snake.bodies.items[i];
+
+            if((@fabs(body.x - snake.tile_x) < 32) and (@fabs(body.y - snake.tile_y) < 32)) {
+                snake.dead = true;
+                i = 0;
+                while(i < snake.bodies.items.len) {
+                    var body2 = &snake.bodies.items[i];
+                    body2.following = false;
+                    i += 1;
+                }
+                break;
+            }
+
+            i += 1;
+        }
     }
 
     pub fn draw(snake: *const Snake, renderer: *sdl.Renderer) void {
-        snake.spr.draw_rotated(renderer, @intToFloat(f64, snake.dir) * 90);
         for(snake.bodies.items) |body| {
             body.draw(renderer);
         }
+
+        // Draw spr last so head is on top
+        snake.spr.draw_rotated(renderer, @intToFloat(f64, snake.dir) * 90);
     }
 
     pub fn deinit(snake: *Snake) void {
