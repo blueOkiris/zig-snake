@@ -1,8 +1,20 @@
+# Project artifacts
 zig-cache/
-*.tar.gz
-sdl2/
-*.a
 zig-out/
+*.a
 zig-snake
+
+# Fonts
+__MACOSX/
+fonts/
+ubuntu-font-family-*/
+
+# Downloaded files
+*.tar.gz
+*.zip
+
+# SDL build folders
+sdl2/
 sdl2-img/
+sdl2-ttf/
 

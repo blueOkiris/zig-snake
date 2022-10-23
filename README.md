@@ -25,9 +25,14 @@ For the main project you only need a zig compiler. It needs to be >0.10 as that'
 However, SDL2 requires some dependencies:
 - wget (downloading SDL2)
 - tar (extracting SDL2)
+- freetype 2 devel libs
 - cmake (configuring SDL2)
 - make (building SDL2)
 - gcc (building)
+
+I also don't have any custom fonts, so I'm using (but not distributing) the Ubuntu fonts. Those download as a zip, so you need:
+- wget
+- unzip
 
 With those installed, you just need to run `make`
 
